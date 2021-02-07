@@ -199,7 +199,7 @@ namespace QuantLib {
         switch (subPeriodsNettingType) {
             case Averaging:
                 setPricer(ext::shared_ptr<FloatingRateCouponPricer>(
-                    new ArithmeticAveragedOvernightIndexedCouponPricer));
+                    new ArithmeticAveragedOvernightIndexedCouponPricer(telescopicValueDates)));
                 break;
             case Compounding:
                 setPricer(
@@ -229,9 +229,11 @@ namespace QuantLib {
     }
 
     OvernightLeg::OvernightLeg(const Schedule& schedule,
-                               const ext::shared_ptr<OvernightIndex>& i)
-    : schedule_(schedule), overnightIndex_(i), paymentCalendar_(schedule.calendar()),
-      paymentAdjustment_(Following), paymentLag_(0), telescopicValueDates_(false) {}
+                               const ext::shared_ptr<OvernightIndex>& i,
+                               OvernightIndexedCoupon::NettingType subPeriodsNettingType)
+    : schedule_(schedule), overnightIndex_(i), subPeriodsNettingType_(subPeriodsNettingType), 
+      paymentCalendar_(schedule.calendar()), paymentAdjustment_(Following), 
+      paymentLag_(0), telescopicValueDates_(false) {}
 
     OvernightLeg& OvernightLeg::withNotionals(Real notional) {
         notionals_ = vector<Real>(1, notional);
@@ -286,12 +288,6 @@ namespace QuantLib {
 
     OvernightLeg& OvernightLeg::withTelescopicValueDates(bool telescopicValueDates) {
         telescopicValueDates_ = telescopicValueDates;
-        return *this;
-    }
-
-    OvernightLeg&
-    OvernightLeg::withNettingType(OvernightIndexedCoupon::NettingType subPeriodsNettingType) {
-        subPeriodsNettingType_ = subPeriodsNettingType;
         return *this;
     }
 

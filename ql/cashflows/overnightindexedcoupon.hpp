@@ -47,7 +47,7 @@ namespace QuantLib {
 
     class OvernightIndexedCoupon : public FloatingRateCoupon {
       public:
-        enum NettingType { Compounding = 0, Averaging = 1 };
+        enum NettingType { Averaging, Compounding };
 
         OvernightIndexedCoupon(const Date& paymentDate,
                                Real nominal,
@@ -94,7 +94,9 @@ namespace QuantLib {
     class OvernightLeg {
       public:
         OvernightLeg(const Schedule& schedule,
-                     const ext::shared_ptr<OvernightIndex>& overnightIndex);
+                     const ext::shared_ptr<OvernightIndex>& overnightIndex,
+                     OvernightIndexedCoupon::NettingType subPeriodsNettingType =
+                         OvernightIndexedCoupon::NettingType::Compounding);
         OvernightLeg& withNotionals(Real notional);
         OvernightLeg& withNotionals(const std::vector<Real>& notionals);
         OvernightLeg& withPaymentDayCounter(const DayCounter&);
@@ -106,7 +108,6 @@ namespace QuantLib {
         OvernightLeg& withSpreads(Spread spread);
         OvernightLeg& withSpreads(const std::vector<Spread>& spreads);
         OvernightLeg& withTelescopicValueDates(bool telescopicValueDates);
-        OvernightLeg& withNettingType(OvernightIndexedCoupon::NettingType subPeriodsNettingType);
         operator Leg() const;
       private:
         Schedule schedule_;

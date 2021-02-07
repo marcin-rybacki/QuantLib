@@ -231,9 +231,9 @@ namespace QuantLib {
     OvernightLeg::OvernightLeg(const Schedule& schedule,
                                const ext::shared_ptr<OvernightIndex>& i,
                                OvernightIndexedCoupon::NettingType subPeriodsNettingType)
-    : schedule_(schedule), overnightIndex_(i), subPeriodsNettingType_(subPeriodsNettingType), 
-      paymentCalendar_(schedule.calendar()), paymentAdjustment_(Following), 
-      paymentLag_(0), telescopicValueDates_(false) {}
+    : schedule_(schedule), overnightIndex_(i), paymentCalendar_(schedule.calendar()),
+      paymentAdjustment_(Following), paymentLag_(0), telescopicValueDates_(false),
+      subPeriodsNettingType_(subPeriodsNettingType) {}
 
     OvernightLeg& OvernightLeg::withNotionals(Real notional) {
         notionals_ = vector<Real>(1, notional);

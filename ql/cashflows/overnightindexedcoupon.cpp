@@ -115,23 +115,30 @@ namespace QuantLib {
     }
 
     OvernightIndexedCoupon::OvernightIndexedCoupon(
-                    const Date& paymentDate,
-                    Real nominal,
-                    const Date& startDate,
-                    const Date& endDate,
-                    const ext::shared_ptr<OvernightIndex>& overnightIndex,
-                    Real gearing,
-                    Spread spread,
-                    const Date& refPeriodStart,
-                    const Date& refPeriodEnd,
-                    const DayCounter& dayCounter,
-                    bool telescopicValueDates,
-                    NettingType subPeriodsNettingType)
-    : FloatingRateCoupon(paymentDate, nominal, startDate, endDate,
-                         overnightIndex->fixingDays(), overnightIndex,
-                         gearing, spread,
-                         refPeriodStart, refPeriodEnd,
-                         dayCounter, false) {
+        const Date& paymentDate,
+        Real nominal,
+        const Date& startDate,
+        const Date& endDate,
+        const ext::shared_ptr<OvernightIndex>& overnightIndex,
+        Real gearing,
+        Spread spread,
+        const Date& refPeriodStart,
+        const Date& refPeriodEnd,
+        const DayCounter& dayCounter,
+        bool telescopicValueDates,
+        OvernightCouponNettingType subPeriodsNettingType)
+    : FloatingRateCoupon(paymentDate,
+                         nominal,
+                         startDate,
+                         endDate,
+                         overnightIndex->fixingDays(),
+                         overnightIndex,
+                         gearing,
+                         spread,
+                         refPeriodStart,
+                         refPeriodEnd,
+                         dayCounter,
+                         false) {
 
         // value dates
         Date tmpEndDate = endDate;
@@ -148,60 +155,57 @@ namespace QuantLib {
             // build optimised value dates schedule: front stub goes
             // from start date to max(evalDate,startDate) + 7bd
             Date evalDate = Settings::instance().evaluationDate();
-            tmpEndDate = overnightIndex->fixingCalendar().advance(
-                std::max(startDate, evalDate), 7, Days, Following);
+            tmpEndDate = overnightIndex->fixingCalendar().advance(std::max(startDate, evalDate), 7,
+                                                                  Days, Following);
             tmpEndDate = std::min(tmpEndDate, endDate);
         }
-        Schedule sch =
-            MakeSchedule()
-                .from(startDate)
-                // .to(endDate)
-                .to(tmpEndDate)
-                .withTenor(1 * Days)
-                .withCalendar(overnightIndex->fixingCalendar())
-                .withConvention(overnightIndex->businessDayConvention())
-                .backwards();
+        Schedule sch = MakeSchedule()
+                           .from(startDate)
+                           // .to(endDate)
+                           .to(tmpEndDate)
+                           .withTenor(1 * Days)
+                           .withCalendar(overnightIndex->fixingCalendar())
+                           .withConvention(overnightIndex->businessDayConvention())
+                           .backwards();
         valueDates_ = sch.dates();
 
         if (telescopicValueDates) {
             // build optimised value dates schedule: back stub
             // contains at least two dates
-            Date tmp = overnightIndex->fixingCalendar().advance(
-                endDate, -1, Days, Preceding);
+            Date tmp = overnightIndex->fixingCalendar().advance(endDate, -1, Days, Preceding);
             if (tmp != valueDates_.back())
                 valueDates_.push_back(tmp);
-            tmp = overnightIndex->fixingCalendar().adjust(
-                endDate, overnightIndex->businessDayConvention());
+            tmp = overnightIndex->fixingCalendar().adjust(endDate,
+                                                          overnightIndex->businessDayConvention());
             if (tmp != valueDates_.back())
                 valueDates_.push_back(tmp);
         }
 
-        QL_ENSURE(valueDates_.size()>=2, "degenerate schedule");
+        QL_ENSURE(valueDates_.size() >= 2, "degenerate schedule");
 
         // fixing dates
-        n_ = valueDates_.size()-1;
-        if (overnightIndex->fixingDays()==0) {
-            fixingDates_ = vector<Date>(valueDates_.begin(),
-                                             valueDates_.end()-1);
+        n_ = valueDates_.size() - 1;
+        if (overnightIndex->fixingDays() == 0) {
+            fixingDates_ = vector<Date>(valueDates_.begin(), valueDates_.end() - 1);
         } else {
             fixingDates_.resize(n_);
-            for (Size i=0; i<n_; ++i)
+            for (Size i = 0; i < n_; ++i)
                 fixingDates_[i] = overnightIndex->fixingDate(valueDates_[i]);
         }
 
         // accrual (compounding) periods
         dt_.resize(n_);
         const DayCounter& dc = overnightIndex->dayCounter();
-        for (Size i=0; i<n_; ++i)
-            dt_[i] = dc.yearFraction(valueDates_[i], valueDates_[i+1]);
+        for (Size i = 0; i < n_; ++i)
+            dt_[i] = dc.yearFraction(valueDates_[i], valueDates_[i + 1]);
 
         // set pricer depending on the netting convention.
         switch (subPeriodsNettingType) {
-            case Averaging:
+            case OvernightCouponNettingType::Averaging:
                 setPricer(ext::shared_ptr<FloatingRateCouponPricer>(
                     new ArithmeticAveragedOvernightIndexedCouponPricer(telescopicValueDates)));
                 break;
-            case Compounding:
+            case OvernightCouponNettingType::Compounding:
                 setPricer(
                     ext::shared_ptr<FloatingRateCouponPricer>(new OvernightIndexedCouponPricer));
                 break;
@@ -230,7 +234,7 @@ namespace QuantLib {
 
     OvernightLeg::OvernightLeg(const Schedule& schedule,
                                const ext::shared_ptr<OvernightIndex>& i,
-                               OvernightIndexedCoupon::NettingType subPeriodsNettingType)
+                               OvernightCouponNettingType subPeriodsNettingType)
     : schedule_(schedule), overnightIndex_(i), paymentCalendar_(schedule.calendar()),
       paymentAdjustment_(Following), paymentLag_(0), telescopicValueDates_(false),
       subPeriodsNettingType_(subPeriodsNettingType) {}

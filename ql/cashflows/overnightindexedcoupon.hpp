@@ -45,10 +45,10 @@ namespace QuantLib {
         instrument each time the evaluation date changes.
     */
 
+    enum class OvernightCouponNettingType { Averaging, Compounding };
+
     class OvernightIndexedCoupon : public FloatingRateCoupon {
       public:
-        enum NettingType { Averaging, Compounding };
-
         OvernightIndexedCoupon(const Date& paymentDate,
                                Real nominal,
                                const Date& startDate,
@@ -60,8 +60,8 @@ namespace QuantLib {
                                const Date& refPeriodEnd = Date(),
                                const DayCounter& dayCounter = DayCounter(),
                                bool telescopicValueDates = false,
-                               NettingType subPeriodsNettingType =
-                                   NettingType::Compounding);
+                               OvernightCouponNettingType subPeriodsNettingType =
+                                   OvernightCouponNettingType::Compounding);
         //! \name Inspectors
         //@{
         //! fixing dates for the rates to be compounded
@@ -95,8 +95,8 @@ namespace QuantLib {
       public:
         OvernightLeg(const Schedule& schedule,
                      const ext::shared_ptr<OvernightIndex>& overnightIndex,
-                     OvernightIndexedCoupon::NettingType subPeriodsNettingType =
-                         OvernightIndexedCoupon::NettingType::Compounding);
+                     OvernightCouponNettingType subPeriodsNettingType =
+                         OvernightCouponNettingType::Compounding);
         OvernightLeg& withNotionals(Real notional);
         OvernightLeg& withNotionals(const std::vector<Real>& notionals);
         OvernightLeg& withPaymentDayCounter(const DayCounter&);
@@ -120,7 +120,7 @@ namespace QuantLib {
         std::vector<Real> gearings_;
         std::vector<Spread> spreads_;
         bool telescopicValueDates_;
-        OvernightIndexedCoupon::NettingType subPeriodsNettingType_;
+        OvernightCouponNettingType subPeriodsNettingType_;
     };
 
 }

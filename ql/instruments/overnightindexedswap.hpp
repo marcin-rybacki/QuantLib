@@ -28,6 +28,7 @@
 #define quantlib_overnight_indexed_swap_hpp
 
 #include <ql/instruments/swap.hpp>
+#include <ql/cashflows/overnightindexedcoupon.hpp>
 #include <ql/time/daycounter.hpp>
 #include <ql/time/businessdayconvention.hpp>
 #include <ql/time/calendar.hpp>
@@ -41,29 +42,33 @@ namespace QuantLib {
     class OvernightIndexedSwap : public Swap {
     public:
         enum Type { Receiver = -1, Payer = 1 };
-        OvernightIndexedSwap(Type type,
-                             Real nominal,
-                             const Schedule& schedule,
-                             Rate fixedRate,
-                             const DayCounter& fixedDC,
-                             const ext::shared_ptr<OvernightIndex>& overnightIndex,
-                             Spread spread = 0.0,
-                             Natural paymentLag = 0,
-                             BusinessDayConvention paymentAdjustment = Following,
-                             const Calendar& paymentCalendar = Calendar(),
-                             bool telescopicValueDates = false);
+      OvernightIndexedSwap(Type type,
+                           Real nominal,
+                           const Schedule& schedule,
+                           Rate fixedRate,
+                           const DayCounter& fixedDC,
+                           const ext::shared_ptr<OvernightIndex>& overnightIndex,
+                           Spread spread = 0.0,
+                           Natural paymentLag = 0,
+                           BusinessDayConvention paymentAdjustment = Following,
+                           const Calendar& paymentCalendar = Calendar(),
+                           bool telescopicValueDates = false,
+                           OvernightCouponNettingType subPeriodsNettingType =
+                               OvernightCouponNettingType::Compounding);
 
         OvernightIndexedSwap(Type type,
-                             const std::vector<Real>& nominals,
-                             const Schedule& schedule,
-                             Rate fixedRate,
-                             const DayCounter& fixedDC,
-                             const ext::shared_ptr<OvernightIndex>& overnightIndex,
-                             Spread spread = 0.0,
-                             Natural paymentLag = 0,
-                             BusinessDayConvention paymentAdjustment = Following,
-                             const Calendar& paymentCalendar = Calendar(),
-                             bool telescopicValueDates = false);
+                           const std::vector<Real>& nominals,
+                           const Schedule& schedule,
+                           Rate fixedRate,
+                           const DayCounter& fixedDC,
+                           const ext::shared_ptr<OvernightIndex>& overnightIndex,
+                           Spread spread = 0.0,
+                           Natural paymentLag = 0,
+                           BusinessDayConvention paymentAdjustment = Following,
+                           const Calendar& paymentCalendar = Calendar(),
+                           bool telescopicValueDates = false,
+                           OvernightCouponNettingType subPeriodsNettingType =
+                               OvernightCouponNettingType::Compounding);
 
         //! \name Inspectors
         //@{
@@ -112,6 +117,7 @@ namespace QuantLib {
         ext::shared_ptr<OvernightIndex> overnightIndex_;
         Spread spread_;
         bool telescopicValueDates_;
+        OvernightCouponNettingType subPeriodsNettingType_;
     };
 
 

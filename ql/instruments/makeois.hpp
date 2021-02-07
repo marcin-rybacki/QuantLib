@@ -41,7 +41,9 @@ namespace QuantLib {
         MakeOIS(const Period& swapTenor,
                 const ext::shared_ptr<OvernightIndex>& overnightIndex,
                 Rate fixedRate = Null<Rate>(),
-                const Period& fwdStart = 0*Days);
+                const Period& fwdStart = 0*Days,
+                OvernightCouponNettingType subPeriodsNettingType =
+                    OvernightCouponNettingType::Compounding);
 
         operator OvernightIndexedSwap() const;
         operator ext::shared_ptr<OvernightIndexedSwap>() const ;
@@ -100,6 +102,7 @@ namespace QuantLib {
         ext::shared_ptr<PricingEngine> engine_;
 
         bool telescopicValueDates_;
+        OvernightCouponNettingType subPeriodsNettingType_;
     };
 
 }

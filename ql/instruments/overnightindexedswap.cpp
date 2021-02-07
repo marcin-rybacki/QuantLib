@@ -21,7 +21,6 @@
 */
 
 #include <ql/instruments/overnightindexedswap.hpp>
-#include <ql/cashflows/overnightindexedcoupon.hpp>
 #include <ql/cashflows/fixedratecoupon.hpp>
 
 namespace QuantLib {
@@ -37,13 +36,15 @@ namespace QuantLib {
         Natural paymentLag,
         BusinessDayConvention paymentAdjustment,
         const Calendar& paymentCalendar,
-        bool telescopicValueDates)
+        bool telescopicValueDates,
+        OvernightCouponNettingType subPeriodsNettingType)
     : Swap(2), type_(type), nominals_(std::vector<Real>(1, nominal)),
       paymentFrequency_(schedule.tenor().frequency()),
       paymentCalendar_(paymentCalendar.empty() ? schedule.calendar() : paymentCalendar),
       paymentAdjustment_(paymentAdjustment), paymentLag_(paymentLag), fixedRate_(fixedRate),
       fixedDC_(fixedDC), overnightIndex_(overnightIndex), spread_(spread),
-      telescopicValueDates_(telescopicValueDates) {
+      telescopicValueDates_(telescopicValueDates), 
+      subPeriodsNettingType_(subPeriodsNettingType) {
 
         initialize(schedule);
     }
@@ -59,12 +60,13 @@ namespace QuantLib {
         Natural paymentLag,
         BusinessDayConvention paymentAdjustment,
         const Calendar& paymentCalendar,
-        bool telescopicValueDates)
+        bool telescopicValueDates,
+        OvernightCouponNettingType subPeriodsNettingType)
     : Swap(2), type_(type), nominals_(nominals), paymentFrequency_(schedule.tenor().frequency()),
       paymentCalendar_(paymentCalendar.empty() ? schedule.calendar() : paymentCalendar),
       paymentAdjustment_(paymentAdjustment), paymentLag_(paymentLag), fixedRate_(fixedRate),
       fixedDC_(fixedDC), overnightIndex_(overnightIndex), spread_(spread),
-      telescopicValueDates_(telescopicValueDates) {
+      telescopicValueDates_(telescopicValueDates), subPeriodsNettingType_(subPeriodsNettingType) {
 
         initialize(schedule);
     }
@@ -73,19 +75,19 @@ namespace QuantLib {
         if (fixedDC_==DayCounter())
             fixedDC_ = overnightIndex_->dayCounter();
         legs_[0] = FixedRateLeg(schedule)
-            .withNotionals(nominals_)
-            .withCouponRates(fixedRate_, fixedDC_)
-            .withPaymentLag(paymentLag_)
-            .withPaymentAdjustment(paymentAdjustment_)
-            .withPaymentCalendar(paymentCalendar_);
+                       .withNotionals(nominals_)
+                       .withCouponRates(fixedRate_, fixedDC_)
+                       .withPaymentLag(paymentLag_)
+                       .withPaymentAdjustment(paymentAdjustment_)
+                       .withPaymentCalendar(paymentCalendar_);
 
-		legs_[1] = OvernightLeg(schedule, overnightIndex_)
-            .withNotionals(nominals_)
-            .withSpreads(spread_)
-            .withTelescopicValueDates(telescopicValueDates_)
-            .withPaymentLag(paymentLag_)
-            .withPaymentAdjustment(paymentAdjustment_)
-            .withPaymentCalendar(paymentCalendar_);
+		legs_[1] = OvernightLeg(schedule, overnightIndex_, subPeriodsNettingType_)
+                       .withNotionals(nominals_)
+                       .withSpreads(spread_)
+                       .withTelescopicValueDates(telescopicValueDates_)
+                       .withPaymentLag(paymentLag_)
+                       .withPaymentAdjustment(paymentAdjustment_)
+                       .withPaymentCalendar(paymentCalendar_);
 
         for (Size j=0; j<2; ++j) {
             for (Leg::iterator i = legs_[j].begin(); i!= legs_[j].end(); ++i)

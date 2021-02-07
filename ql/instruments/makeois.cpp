@@ -30,7 +30,8 @@ namespace QuantLib {
     MakeOIS::MakeOIS(const Period& swapTenor,
                      const ext::shared_ptr<OvernightIndex>& overnightIndex,
                      Rate fixedRate,
-                     const Period& forwardStart)
+                     const Period& forwardStart,
+                     OvernightCouponNettingType subPeriodsNettingType)
     : swapTenor_(swapTenor), overnightIndex_(overnightIndex),
       fixedRate_(fixedRate), forwardStart_(forwardStart),
       settlementDays_(2),
@@ -44,7 +45,8 @@ namespace QuantLib {
       isDefaultEOM_(true),
       type_(OvernightIndexedSwap::Payer), nominal_(1.0),
       overnightSpread_(0.0),
-      fixedDayCount_(overnightIndex->dayCounter()), telescopicValueDates_(false) {}
+      fixedDayCount_(overnightIndex->dayCounter()), telescopicValueDates_(false),
+      subPeriodsNettingType_(subPeriodsNettingType) {}
 
     MakeOIS::operator OvernightIndexedSwap() const {
         ext::shared_ptr<OvernightIndexedSwap> ois = *this;
@@ -95,13 +97,11 @@ namespace QuantLib {
 
         Rate usedFixedRate = fixedRate_;
         if (fixedRate_ == Null<Rate>()) {
-            OvernightIndexedSwap temp(type_, nominal_,
-                                      schedule,
+            OvernightIndexedSwap temp(type_, nominal_, schedule,
                                       0.0, // fixed rate
-                                      fixedDayCount_,
-                                      overnightIndex_, overnightSpread_,
-                                      paymentLag_, paymentAdjustment_,
-                                      paymentCalendar_, telescopicValueDates_);
+                                      fixedDayCount_, overnightIndex_, overnightSpread_,
+                                      paymentLag_, paymentAdjustment_, paymentCalendar_,
+                                      telescopicValueDates_, subPeriodsNettingType_);
             if (engine_ == 0) {
                 Handle<YieldTermStructure> disc =
                                     overnightIndex_->forwardingTermStructure();
@@ -118,13 +118,10 @@ namespace QuantLib {
             usedFixedRate = temp.fairRate();
         }
 
-        ext::shared_ptr<OvernightIndexedSwap> ois(new
-            OvernightIndexedSwap(type_, nominal_,
-                                 schedule,
-                                 usedFixedRate, fixedDayCount_,
-                                 overnightIndex_, overnightSpread_,
-                                 paymentLag_, paymentAdjustment_,
-                                 paymentCalendar_, telescopicValueDates_));
+        ext::shared_ptr<OvernightIndexedSwap> ois(new OvernightIndexedSwap(
+            type_, nominal_, schedule, usedFixedRate, fixedDayCount_, overnightIndex_,
+            overnightSpread_, paymentLag_, paymentAdjustment_, paymentCalendar_,
+            telescopicValueDates_, subPeriodsNettingType_));
 
         if (engine_ == 0) {
             Handle<YieldTermStructure> disc =

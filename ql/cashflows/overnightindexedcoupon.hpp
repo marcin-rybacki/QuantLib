@@ -44,20 +44,24 @@ namespace QuantLib {
         rather by the OISRateHelper which is safe, since it reinitialises the
         instrument each time the evaluation date changes.
     */
+
     class OvernightIndexedCoupon : public FloatingRateCoupon {
       public:
-        OvernightIndexedCoupon(
-                    const Date& paymentDate,
-                    Real nominal,
-                    const Date& startDate,
-                    const Date& endDate,
-                    const ext::shared_ptr<OvernightIndex>& overnightIndex,
-                    Real gearing = 1.0,
-                    Spread spread = 0.0,
-                    const Date& refPeriodStart = Date(),
-                    const Date& refPeriodEnd = Date(),
-                    const DayCounter& dayCounter = DayCounter(),
-                    bool telescopicValueDates = false);
+        enum NettingType { Compounding = 0, Averaging = 1 };
+
+        OvernightIndexedCoupon(const Date& paymentDate,
+                               Real nominal,
+                               const Date& startDate,
+                               const Date& endDate,
+                               const ext::shared_ptr<OvernightIndex>& overnightIndex,
+                               Real gearing = 1.0,
+                               Spread spread = 0.0,
+                               const Date& refPeriodStart = Date(),
+                               const Date& refPeriodEnd = Date(),
+                               const DayCounter& dayCounter = DayCounter(),
+                               bool telescopicValueDates = false,
+                               NettingType subPeriodsNettingType =
+                                   NettingType::Compounding);
         //! \name Inspectors
         //@{
         //! fixing dates for the rates to be compounded
@@ -102,6 +106,7 @@ namespace QuantLib {
         OvernightLeg& withSpreads(Spread spread);
         OvernightLeg& withSpreads(const std::vector<Spread>& spreads);
         OvernightLeg& withTelescopicValueDates(bool telescopicValueDates);
+        OvernightLeg& withNettingType(OvernightIndexedCoupon::NettingType subPeriodsNettingType);
         operator Leg() const;
       private:
         Schedule schedule_;
@@ -114,6 +119,7 @@ namespace QuantLib {
         std::vector<Real> gearings_;
         std::vector<Spread> spreads_;
         bool telescopicValueDates_;
+        OvernightIndexedCoupon::NettingType subPeriodsNettingType_;
     };
 
 }

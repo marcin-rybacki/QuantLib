@@ -23,6 +23,7 @@
 
 #include <ql/cashflows/overnightindexedcoupon.hpp>
 #include <ql/cashflows/couponpricer.hpp>
+#include <ql/experimental/averageois/averageoiscouponpricer.hpp>
 #include <ql/termstructures/yieldtermstructure.hpp>
 #include <ql/utilities/vectors.hpp>
 #include <ql/termstructures/yieldtermstructure.hpp>
@@ -124,7 +125,8 @@ namespace QuantLib {
                     const Date& refPeriodStart,
                     const Date& refPeriodEnd,
                     const DayCounter& dayCounter,
-                    bool telescopicValueDates)
+                    bool telescopicValueDates,
+                    NettingType subPeriodsNettingType)
     : FloatingRateCoupon(paymentDate, nominal, startDate, endDate,
                          overnightIndex->fixingDays(), overnightIndex,
                          gearing, spread,
@@ -193,8 +195,20 @@ namespace QuantLib {
         for (Size i=0; i<n_; ++i)
             dt_[i] = dc.yearFraction(valueDates_[i], valueDates_[i+1]);
 
-        setPricer(ext::shared_ptr<FloatingRateCouponPricer>(new
-                                            OvernightIndexedCouponPricer));
+        // set pricer depending on the netting convention.
+        switch (subPeriodsNettingType) {
+            case Averaging:
+                setPricer(ext::shared_ptr<FloatingRateCouponPricer>(
+                    new ArithmeticAveragedOvernightIndexedCouponPricer));
+                break;
+            case Compounding:
+                setPricer(
+                    ext::shared_ptr<FloatingRateCouponPricer>(new OvernightIndexedCouponPricer));
+                break;
+            default:
+                QL_FAIL("unknown compounding convention (" << Integer(subPeriodsNettingType)
+                                                           << ")");
+        }
     }
 
     const vector<Rate>& OvernightIndexedCoupon::indexFixings() const {
@@ -275,6 +289,12 @@ namespace QuantLib {
         return *this;
     }
 
+    OvernightLeg&
+    OvernightLeg::withNettingType(OvernightIndexedCoupon::NettingType subPeriodsNettingType) {
+        subPeriodsNettingType_ = subPeriodsNettingType;
+        return *this;
+    }
+
     OvernightLeg::operator Leg() const {
 
         QL_REQUIRE(!notionals_.empty(), "no notional given");
@@ -310,7 +330,8 @@ namespace QuantLib {
                                        detail::get(spreads_, i, 0.0),
                                        refStart, refEnd,
                                        paymentDayCounter_,
-                                       telescopicValueDates_)));
+                                       telescopicValueDates_,
+                                       subPeriodsNettingType_)));
         }
         return cashflows;
     }

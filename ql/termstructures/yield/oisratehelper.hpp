@@ -48,7 +48,9 @@ namespace QuantLib {
             const Period& forwardStart = 0 * Days,
             Spread overnightSpread = 0.0,
             Pillar::Choice pillar = Pillar::LastRelevantDate,
-            Date customPillarDate = Date());
+            Date customPillarDate = Date(),
+            OvernightCouponNettingType subPeriodsNettingType =
+                OvernightCouponNettingType::Compounding);
         //! \name RateHelper interface
         //@{
         Real impliedQuote() const override;
@@ -83,20 +85,22 @@ namespace QuantLib {
       Calendar paymentCalendar_;
       Period forwardStart_;
       Spread overnightSpread_;
+      OvernightCouponNettingType subPeriodsNettingType_;
     };
 
     //! Rate helper for bootstrapping over Overnight Indexed Swap rates
     class DatedOISRateHelper : public RateHelper {
       public:
         DatedOISRateHelper(
-                    const Date& startDate,
-                    const Date& endDate,
-                    const Handle<Quote>& fixedRate,
-                    const ext::shared_ptr<OvernightIndex>& overnightIndex,
-                      // exogenous discounting curve
-                    const Handle<YieldTermStructure>& discountingCurve
-                                              = Handle<YieldTermStructure>(),
-                    bool telescopicValueDates = false);
+            const Date& startDate,
+            const Date& endDate,
+            const Handle<Quote>& fixedRate,
+            const ext::shared_ptr<OvernightIndex>& overnightIndex,
+            // exogenous discounting curve
+            const Handle<YieldTermStructure>& discountingCurve = Handle<YieldTermStructure>(),
+            bool telescopicValueDates = false,
+            OvernightCouponNettingType subPeriodsNettingType =
+                OvernightCouponNettingType::Compounding);
         //! \name RateHelper interface
         //@{
         Real impliedQuote() const override;
@@ -113,6 +117,7 @@ namespace QuantLib {
         Handle<YieldTermStructure> discountHandle_;
         bool telescopicValueDates_;
         RelinkableHandle<YieldTermStructure> discountRelinkableHandle_;
+        OvernightCouponNettingType subPeriodsNettingType_;
     };
 
 }

@@ -39,7 +39,8 @@ namespace QuantLib {
                     const Period& forwardStart, 
                     const Spread overnightSpread,
                     Pillar::Choice pillar,
-                    Date customPillarDate)
+                    Date customPillarDate,
+                    OvernightCouponNettingType subPeriodsNettingType)
     : RelativeDateRateHelper(fixedRate),
       pillarChoice_(pillar),
       settlementDays_(settlementDays), tenor_(tenor),
@@ -48,7 +49,8 @@ namespace QuantLib {
       paymentLag_(paymentLag), paymentConvention_(paymentConvention),
       paymentFrequency_(paymentFrequency),
       paymentCalendar_(paymentCalendar),
-      forwardStart_(forwardStart), overnightSpread_(overnightSpread) {
+      forwardStart_(forwardStart), overnightSpread_(overnightSpread),
+      subPeriodsNettingType_(subPeriodsNettingType) {
         registerWith(overnightIndex_);
         registerWith(discountHandle_);
 
@@ -67,7 +69,7 @@ namespace QuantLib {
 
         // input discount curve Handle might be empty now but it could
         //    be assigned a curve later; use a RelinkableHandle here
-        swap_ = MakeOIS(tenor_, clonedOvernightIndex, 0.0, forwardStart_)
+        swap_ = MakeOIS(tenor_, clonedOvernightIndex, 0.0, forwardStart_, subPeriodsNettingType_)
             .withDiscountingTermStructure(discountRelinkableHandle_)
             .withSettlementDays(settlementDays_)
             .withTelescopicValueDates(telescopicValueDates_)
@@ -147,9 +149,11 @@ namespace QuantLib {
                     const Handle<Quote>& fixedRate,
                     const ext::shared_ptr<OvernightIndex>& overnightIndex,
                     const Handle<YieldTermStructure>& discount,
-                    bool telescopicValueDates)
+                    bool telescopicValueDates,
+                    OvernightCouponNettingType subPeriodsNettingType)
         : RateHelper(fixedRate), discountHandle_(discount),
-          telescopicValueDates_(telescopicValueDates) {
+          telescopicValueDates_(telescopicValueDates), 
+          subPeriodsNettingType_(subPeriodsNettingType) {
 
         registerWith(overnightIndex);
         registerWith(discountHandle_);
@@ -163,7 +167,7 @@ namespace QuantLib {
 
         // input discount curve Handle might be empty now but it could
         //    be assigned a curve later; use a RelinkableHandle here
-        swap_ = MakeOIS(Period(), clonedOvernightIndex, 0.0)
+        swap_ = MakeOIS(Period(), clonedOvernightIndex, 0.0, 0 * Days, subPeriodsNettingType_)
             .withDiscountingTermStructure(discountRelinkableHandle_)
             .withEffectiveDate(startDate)
             .withTerminationDate(endDate)

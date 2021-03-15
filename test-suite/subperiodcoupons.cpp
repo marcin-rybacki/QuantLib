@@ -80,7 +80,7 @@ namespace subperiodcoupons_test {
         ext::shared_ptr<CashFlow> createSubPeriodsCoupon(const Date& start,
                                                          const Date& end,
                                                          Spread rateSpread = 0.0,
-                                                         bool useCompoundedRate = true) {
+                                                         bool useCompoundedRate = true) const {
             Date paymentDate = calendar.advance(end, 1 * Days, businessConvention);
             Date exCouponDate = calendar.advance(paymentDate, -2 * Days, businessConvention);
             ext::shared_ptr<FloatingRateCoupon> cpn(

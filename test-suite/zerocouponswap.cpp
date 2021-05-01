@@ -70,7 +70,7 @@ namespace zerocouponswap_test {
         ext::shared_ptr<CashFlow>
         createSubPeriodsCoupon(const Date& start,
                                const Date& end,
-                               RateAveraging::Type averaging = RateAveraging::Compound) {
+                               RateAveraging::Type averaging = RateAveraging::Compound) const {
             Date paymentDate = calendar.advance(end, paymentDelay * Days, businessConvention);
             ext::shared_ptr<FloatingRateCoupon> cpn(new SubPeriodsCoupon(
                 paymentDate, baseNominal, start, end, settlementDays, euribor));

@@ -25,6 +25,7 @@
 #include <ql/cashflows/subperiodcoupon.hpp>
 #include <ql/indexes/iborindex.hpp>
 #include <ql/instruments/zerocouponswap.hpp>
+#include <utility>
 
 namespace QuantLib {
 
@@ -117,10 +118,17 @@ namespace QuantLib {
                                    BusinessDayConvention paymentConvention,
                                    Natural paymentDelay,
                                    RateAveraging::Type averagingMethod)
-    : ZeroCouponSwap(type, baseNominal, startDate, maturityDate,
-      calculateFixedPayment(startDate, maturityDate, baseNominal, fixedRate, fixedDayCounter),
-      iborIndex, paymentCalendar, paymentConvention, paymentDelay, averagingMethod) {
-    }
+    : ZeroCouponSwap(
+          type,
+          baseNominal,
+          startDate,
+          maturityDate,
+          calculateFixedPayment(startDate, maturityDate, baseNominal, fixedRate, fixedDayCounter),
+          std::move(iborIndex),
+          paymentCalendar,
+          paymentConvention,
+          paymentDelay,
+          averagingMethod) {}
 
     Real ZeroCouponSwap::fixedLegNPV() const {
         return legNPV(0);

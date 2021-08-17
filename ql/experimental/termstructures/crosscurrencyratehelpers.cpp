@@ -182,9 +182,10 @@ namespace QuantLib {
         Handle<YieldTermStructure> collateralCurve,
         bool isFxBaseCurrencyCollateralCurrency,
         bool isBasisOnFxBaseCurrencyLeg)
-    : RelativeDateRateHelper(basis), tenor_(tenor), fixingDays_(fixingDays), calendar_(calendar),
-      convention_(convention), endOfMonth_(endOfMonth), baseCcyIdx_(std::move(baseCurrencyIndex)),
-      quoteCcyIdx_(std::move(quoteCurrencyIndex)), collateralHandle_(std::move(collateralCurve)),
+    : RelativeDateRateHelper(basis), tenor_(tenor), fixingDays_(fixingDays),
+      calendar_(std::move(std::move(calendar))), convention_(convention), endOfMonth_(endOfMonth),
+      baseCcyIdx_(std::move(baseCurrencyIndex)), quoteCcyIdx_(std::move(quoteCurrencyIndex)),
+      collateralHandle_(std::move(collateralCurve)),
       isFxBaseCurrencyCollateralCurrency_(isFxBaseCurrencyCollateralCurrency),
       isBasisOnFxBaseCurrencyLeg_(isBasisOnFxBaseCurrencyLeg) {
         registerWith(baseCcyIdx_);
@@ -265,12 +266,12 @@ namespace QuantLib {
     : CrossCurrencyBasisSwapRateHelper(basis,
                                        tenor,
                                        fixingDays,
-                                       calendar,
+                                       std::move(calendar),
                                        convention,
                                        endOfMonth,
-                                       baseCurrencyIndex,
-                                       quoteCurrencyIndex,
-                                       collateralCurve,
+                                       std::move(baseCurrencyIndex),
+                                       std::move(quoteCurrencyIndex),
+                                       std::move(collateralCurve),
                                        isFxBaseCurrencyCollateralCurrency,
                                        isBasisOnFxBaseCurrencyLeg),
       isFxBaseCurrencyLegResettable_(isFxBaseCurrencyLegResettable) {}
@@ -303,6 +304,6 @@ namespace QuantLib {
         if (v1 != nullptr)
             v1->visit(*this);
         else
-            RateHelper::accept(v);
+            QuantLib::CrossCurrencyBasisSwapRateHelper::accept(v);
     }
 }

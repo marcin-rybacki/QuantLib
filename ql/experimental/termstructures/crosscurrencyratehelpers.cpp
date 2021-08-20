@@ -302,6 +302,6 @@ namespace QuantLib {
         if (v1 != nullptr)
             v1->visit(*this);
         else
-            RateHelper::accept(v);
+            QuantLib::CrossCurrencyBasisSwapRateHelper::accept(v);
     }
 }
